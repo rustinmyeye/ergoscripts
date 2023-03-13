@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 # Git test
 # Shell script for installing Ergo Node on any platform.
 # markglasgow@gmail.com 
 # -------------------------------------------------------------------------
 # Totally butchered by rustinmyeye
 
-## Minimal Config
+## Minimal Config - no api key hash
 echo "
     ergo {
         node {
@@ -14,7 +14,7 @@ echo "
 
     }" > ergo.conf
         
-## Node start command
+## Create node start script
 echo "
 #!/bin/sh  
 while true
@@ -25,7 +25,7 @@ done" > start.sh
     
 chmod +x start.sh
 
-## Download .jar
+## Download ergo.jar
 echo "- Retrieving latest node release.."
 LATEST_ERGO_RELEASE=$(curl -s "https://api.github.com/repos/ergoplatform/ergo/releases/latest" | awk -F '"' '/tag_name/{print $4}')
 LATEST_ERGO_RELEASE_NUMBERS=$(echo ${LATEST_ERGO_RELEASE} | cut -c 2-)
@@ -33,7 +33,7 @@ ERGO_DOWNLOAD_URL=https://github.com/ergoplatform/ergo/releases/download/${LATES
 echo "- Downloading Latest known Ergo release: ${LATEST_ERGO_RELEASE}."
 curl --silent -L ${ERGO_DOWNLOAD_URL} --output ergo.jar
 
-##Start node
+##Start node in tmux and detach
 echo "Starting the node..."
 
 tmux new-session -d -s my_session 'sh start.sh && sleep 5'
@@ -45,119 +45,15 @@ set_environment(){
     export API_KEY="dummy"
     
     let j=0
-    #OS=$(uname -m)
-
     
     dt=$(date '+%d/%m/%Y %H:%M:%S');
     let i=0
     let PERCENT_BLOCKS=100
     let PERCENT_HEADERS=100
-
-    # Check for python
-    #if ! hash python3; then
-        #echo "python is not installed"
-        #curl https://pyenv.run | bash
-        #echo "Python installed, please re-run"
-        #https://github.com/pyenv-win/pyenv-win
-        #exit 1
-    #fi
-   
-    # check python version
-    #pyv=$(python -V 2>&1 | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
-    #echo $pyv
-
-    # Check Java
-    #jver=`java -version 2>&1 | grep 'version' 2>&1 | awk -F\" '{ split($2,a,"."); print a[1]"."a[2]}'`
-    #if [[ $jver > "1.8" ]]; then                
-        #echo "."
-        #echo "."
-        #exit 1
-    #else
-        #echo "Java="$jver
-    #fi
-   
-  
-    # Set heap
-    #case "$(uname -s)" in
-
-        #CYGWIN*|MINGW32*|MSYS*|MINGW*)
-            #echo 'MS Windows'
-            #WIN_MEM=$(systeminfo)
-            #WIN_MEM=$(wmic OS get FreePhysicalMemory)
-            #kb_to_mb=$((memory*1024))
-            #echo "WIN memory !!-- " $kb_to_mb
-            #JVM_HEAP_SIZE="-Xmx${kb_to_mb}m"
-            #;;
-
-        #https://raw.githubusercontent.com/rustinmyeye/ergoscripts/main/sh/install_gui.shLinux)
-            #memory=`awk '/MemTotal/ {printf( "%d\n", $2 / 1024 )}' /proc/meminfo` 
-            #half_mem=$((${memory%.*} / 2))
-            #JVM_HEAP_SIZE="-Xmx${half_mem}m"
-            #;;
-
-        #Darwin) #Other
-            #memory=$(top -l1 | awk '/PhysMem/ {print $2}')
-            #half_mem=$((${memory%?} / 2))
-            #JVM_HEAP_SIZE="-Xmx${half_mem}g"             
-            #;;
-
-        #Other*)
-            #memory=`awk '/MemTotal/ {printf( "%d\n", $2 / 1024 )}' /proc/meminfo` 
-            #half_mem=$((${memory%.*} / 3))
-            #JVM_HEAP_SIZE="-Xmx${half_mem}m"
-            #;;
-    #esac
-
-    #case "$(uname -m)" in
-        #armv7l|aarch64)
-            #JVM_HEAP_SIZE="-Xmx2G"
-            #echo "JVM_HEAP_SIZE Set to:" $JVM_HEAP_SIZE
-            
-            #echo "Raspberry Pi detected, running node in light-mode" 
-
-            #echo "blocksToKeep = 1440 # keep ~2 days of blocks"
-            #export blocksToKeep="#blocksToKeep = 1440 # 1440 = ~2days"
-
-            #echo "stateType = digest # Note: You cannot validate arbitrary block and generate ADProofs due to this"
-            #export stateType="stateType = digest"
-
-            #sleep 10
-
-            #;;
-    #esac
     
 }
 
-#set_configuration (){
-        #echo "
-                #ergo {
-                    #node {
-                        # Full options available at 
-                        # https://github.com/ergoplatform/ergo/blob/master/src/main/resources/application.conf
-                        
-                        #mining = false
-                        # Skip validation of transactions in the mainnet before block 417,792 (in v1 blocks).
-                        # Block 417,792 is checkpointed by the protocol (so its UTXO set as well).
-                        # The node still applying transactions to UTXO set and so checks UTXO set digests for each block.
-                        #skipV1TransactionsValidation = true
-                    #}
-                #}      
-                        
-                #scorex {
-                    #restApi {
-                        # Hex-encoded Blake2b256 hash of an API key. 
-                        # Should be 64-chars long Base16 string.
-                        # below is the hash of the string 'hello'
-                        # replace with your actual hash 
-                        #apiKeyHash = "$BLAKE_HASH"
-                        
-                    #}
-                
-                #}
-        #" > ergo.conf
-
-#}
-
+## Start node error log
 start_node(){
     #java -jar $JVM_HEAP_SIZE ergo.jar --mainnet -c ergo.conf > server.log 2>&1 & 
     echo "#### Waiting for a response from the server. ####"
@@ -165,89 +61,18 @@ start_node(){
     
 }
 
-# Set basic config for boot, boot & get the hash and then re-set config 
-#first_run() {
-
-            
-        ### Download the latest .jar file                                                                    
-        #if [ ! -e *.jar ]; then 
-            #echo "- Retrieving latest node release.."
-            #LATEST_ERGO_RELEASE=$(curl -s "https://api.github.com/repos/ergoplatform/ergo/releases/latest" | awk -F '"' '/tag_name/{print $4}')
-            #LATEST_ERGO_RELEASE_NUMBERS=$(echo ${LATEST_ERGO_RELEASE} | cut -c 2-)
-            #ERGO_DOWNLOAD_URL=https://github.com/ergoplatform/ergo/releases/download/${LATEST_ERGO_RELEASE}/ergo-${LATEST_ERGO_RELEASE_NUMBERS}.jar
-            #echo "- Downloading Latest known Ergo release: ${LATEST_ERGO_RELEASE}."
-            #curl --silent -L ${ERGO_DOWNLOAD_URL} --output ergo.jar
-        #fi 
-
-    
-        
-        # API 
-        #read -p "
-    #### Please create a password. #### 
-    #This will be used to unlock your API. 
-    #Generally using the same API key through the entire sync process can prevent 'Bad API Key' errors:
-    #" input
-
-        #export API_KEY=$input
-        #echo "$API_KEY" > api.conf
-
-        
-        
-        #start_node
-        
-        #export BLAKE_HASH=$(curl --silent -X POST "http://localhost:9053/utils/hash/blake2b" -H "accept: application/json" -H "Content-Type: application/json" -d "\"$input\"")
-        #echo "$BLAKE_HASH" > blake.conf
-        #echo "BLAKE_HASH:$BLAKE_HASH"
-        
-        #func_kill
-
-        # Add blake hash
-        #set_configuration
-        
-        #start_node
-        
-        # Add blake hash
-        #set_configuration
-
-#}
-
-#func_kill(){
-    #case "$(uname -s)" in
-
-    #CYGWIN*|MINGW32*|MSYS*|MINGW*)
-        #echo 'MS Windows'
-        #netstat -ano | findstr :9053
-        #taskkill /PID 9053 /F
-        #;;
-
-    #armv7l*|aarch64)
-        #echo "on Pi!"
-        #kill -9 $(lsof -t -i:9053)
-        #kill -9 $(lsof -t -i:9030)
-        #killall -9 java
-        #sleep 10
-        #;;
-    #*) #Other
-        #kill -9 $(lsof -t -i:9053)
-        #kill -9 $(lsof -t -i:9030)
-        #killall -9 java
-        #sleep 10
-        #;;
-    #esac
-
-#}
-
+## Error log
 error_log(){
     inputFile=ergo.log
     
     if egrep 'ERROR\|WARN' "$inputFile" ; then
-        #echo "WARN/ERROR:" $egrep
+        echo "WARN/ERROR:" $egrep
         echo "$egrep" >> error.log
     elif egrep 'Got GetReaders request in state (None,None,None,None)\|port' "$inputFile" ; then
         echo "Readers not ready. If this keeps happening we'll attempt to restart: $i"
         ((i=i+1)) 
     elif egrep 'Invalid z bytes' "$inputFile" ; then
-        #echo "zBYTES error:" $egrep
+        echo "zBYTES error:" $egrep
         echo "$egrep" >> error.log
     
     fi
@@ -263,6 +88,7 @@ error_log(){
 
 }
 
+## Node online?
 check_status(){
     LRED="\033[1;31m" # Light Red
     LGREEN="\033[1;32m" # Light Green
@@ -274,13 +100,14 @@ check_status(){
         echo -e "${LRED}${1} is down${NC}"
         #func_kill
         killall -9 java
-        #start_node
+        #start_node should start automatically because of while loop
         print_console
     else
        echo -e "${LGREEN}${1} is online${NC}"
     fi
 }
 
+## grab heights and node height vs full height calculation 
 get_heights() {
     check_status "localhost:9053/info"
 
@@ -307,7 +134,8 @@ get_heights() {
         fi
     fi
 }
-    
+
+## Display info to user    
 print_console() {
     while sleep 1
         do
@@ -331,12 +159,7 @@ print_console() {
     done
 }
 
-
-# /
-# main()
-# / 
-
-# Set some environment variables and print console
+# Set some environment variables, start log, and print console
 set_environment     
 
 start_node
@@ -346,7 +169,7 @@ sleep 30
 print_console
 
 # Launch in browser
-sleep 60
+#sleep 60
 
 #adb shell am start -a android.intent.action.VIEW -d http://127.0.0.1:9053/panel
 #python3${ver:0:1} -mwebbrowser http://127.0.0.1:9053/panel 
