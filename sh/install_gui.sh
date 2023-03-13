@@ -281,60 +281,32 @@ check_status(){
     fi
 }
 
-get_heights(){
-
+get_heights() {
     check_status "localhost:9053/info"
- 
-        API_HEIGHT2==$(\
-                curl --silent --max-time 10 --output -X GET "https://api.ergoplatform.com/api/v1/networkState" -H "accept: application/json" )
 
-        HEADERS_HEIGHT=$(\
-            curl --silent --max-time 10 --output -X GET "http://localhost:9053/info" -H "accept: application/json" \
-            | python3 -c "import sys, json; print(json.load(sys.stdin)['headersHeight']);"\
-        )
+    API_HEIGHT=$(curl --silent --max-time 10 --output -X GET "https://api.ergoplatform.com/api/v1/networkState" -H "accept: application/json" | python3 -c "import sys, json; print(json.load(sys.stdin)['height']);")
+    HEADERS_HEIGHT=$(curl --silent --max-time 10 --output -X GET "http://localhost:9053/info" -H "accept: application/json" | python3 -c "import sys, json; print(json.load(sys.stdin)['headersHeight']);")
+    HEIGHT=$(curl --silent --max-time 10 --output -X GET "http://localhost:9053/info" -H "accept: application/json" | python3 -c "import sys, json; print(json.load(sys.stdin)['parameters']['height']);")
+    FULL_HEIGHT=$(curl --silent --max-time 10 --output -X GET "http://localhost:9053/info" -H "accept: application/json" | python3 -c "import sys, json; print(json.load(sys.stdin)['fullHeight']);")
 
-        HEIGHT=$(\
-        curl --silent --max-time 10 --output -X GET "http://localhost:9053/info" -H "accept: application/json"   \
-        | python3 -c "import sys, json; print(json.load(sys.stdin)['parameters']['height']);"\
-        )
-        
-        FULL_HEIGHT=$(\
-        curl --silent --max-time 10 --output -X GET "http://localhost:9053/info" -H "accept: application/json"   \
-        | python3 -c "import sys, json; print(json.load(sys.stdin)['fullHeight']);"\
-        )               
-        
-        
-        API_HEIGHT=${API_HEIGHT2:92:6}
+    API_HEIGHT=${API_HEIGHT:-0}
+
     # Calculate %
-    if [ -n "$API_HEIGHT" ] && [ "$API_HEIGHT" -eq "$API_HEIGHT" ] 2>/dev/null; then
-        
-        
-        if [ -n "$HEADERS_HEIGHT" ] && [ "$HEADERS_HEIGHT" -eq "$HEADERS_HEIGHT" ] 2>/dev/null; then
-            let expr PERCENT_HEADERS=$(( ( ($API_HEIGHT - $HEADERS_HEIGHT) * 100) / $API_HEIGHT   )) 
-        fi
-
-        if [ -n "$HEIGHT" ] && [ "$HEIGHT" -eq "$HEIGHT" ] 2>/dev/null; then
-            let expr PERCENT_BLOCKS=$(( ( ($API_HEIGHT - $HEIGHT) * 100) / $API_HEIGHT   ))
-        fi        
-        
-        # if height==headersHeight then we are syncronised. 
-        if [ -n "$HEADERS_HEIGHT" ] && [ "$HEADERS_HEIGHT" -eq "$HEIGHT" ] 2>/dev/null; then
+    if [ "$API_HEIGHT" -gt 0 ]; then
+        if [ "$HEADERS_HEIGHT" -eq "$HEIGHT" ]; then
             echo "HeadersHeight == Height"
-            echo "Node is syncronised"
+            echo "Node is synchronized"
             exit 1
-
-        fi
-
-        # If HeadersHeight < Height then something has gone wrong
-        if [ -n "$HEADERS_HEIGHT" ] && [ "$HEADERS_HEIGHT" -lt "$HEIGHT" ] 2>/dev/null; then
+        elif [ "$HEADERS_HEIGHT" -lt "$HEIGHT" ]; then
             echo "HeadersHeight < Height"
             echo "Mis-sync!"
             exit 1
-
+        else
+            PERCENT_HEADERS=$(( ( ($API_HEIGHT - $HEADERS_HEIGHT) * 100) / $API_HEIGHT ))
+            PERCENT_BLOCKS=$(( ( ($API_HEIGHT - $HEIGHT) * 100) / $API_HEIGHT ))
         fi
-   
-        
-} 
+    fi
+}
     
 print_console() {
     while sleep 1
