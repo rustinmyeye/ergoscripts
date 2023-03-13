@@ -313,7 +313,7 @@ print_console() {
         
         printf "%s    \n\n" \
         "View the Ergo node panel at 127.0.0.1:9053/panel"\
-        "You can add this node to Ergo Wallet app's node and apo connections when it is 100% synced"  \
+        "You can add this node to Ergo Wallet app's node and api connections when it is 100% synced"  \
         "For best results please enable wakelock mode while syncing"  \
         "Sync Progress;"\
         "### Headers: ~$(( 100 - $PERCENT_HEADERS ))% Complete ($HEADERS_HEIGHT/$API_HEIGHT) ### "\
