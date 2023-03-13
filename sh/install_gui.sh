@@ -31,7 +31,7 @@ set_environment(){
     let PERCENT_HEADERS=100
 
     # Check for python
-    if ! hash python; then
+    if ! hash python3; then
         echo "python is not installed"
         #curl https://pyenv.run | bash
         #echo "Python installed, please re-run"
@@ -39,9 +39,6 @@ set_environment(){
         exit 1
     fi
    
-    # check python version
-    pyv=$(python -V 2>&1 | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
-    #echo $pyv
 
     # Check Java
     jver=`java -version 2>&1 | grep 'version' 2>&1 | awk -F\" '{ split($2,a,"."); print a[1]"."a[2]}'`
@@ -272,17 +269,17 @@ get_heights(){
 
         HEADERS_HEIGHT=$(\
             curl --silent --max-time 10 --output -X GET "http://localhost:9053/info" -H "accept: application/json" \
-            | python -c "import sys, json; print(json.load(sys.stdin)['headersHeight']);"\
+            | python3 -c "import sys, json; print(json.load(sys.stdin)['headersHeight']);"\
         )
 
         HEIGHT=$(\
         curl --silent --max-time 10 --output -X GET "http://localhost:9053/info" -H "accept: application/json"   \
-        | python -c "import sys, json; print(json.load(sys.stdin)['parameters']['height']);"\
+        | python3 -c "import sys, json; print(json.load(sys.stdin)['parameters']['height']);"\
         )
         
         FULL_HEIGHT=$(\
         curl --silent --max-time 10 --output -X GET "http://localhost:9053/info" -H "accept: application/json"   \
-        | python -c "import sys, json; print(json.load(sys.stdin)['fullHeight']);"\
+        | python3 -c "import sys, json; print(json.load(sys.stdin)['fullHeight']);"\
         )               
         
     fi
@@ -293,17 +290,17 @@ get_heights(){
 
         HEADERS_HEIGHT=$(\
             curl --silent --max-time 10 --output -X GET "http://localhost:9053/info" -H "accept: application/json" \
-            | python -c "import sys, json; print json.load(sys.stdin)['headersHeight'];"\
+            | python3 -c "import sys, json; print json.load(sys.stdin)['headersHeight'];"\
         )
 
         HEIGHT=$(\
         curl --silent --max-time 10 --output -X GET "http://localhost:9053/info" -H "accept: application/json"   \
-        | python -c "import sys, json; print json.load(sys.stdin)['parameters']['height'];"\
+        | python3 -c "import sys, json; print json.load(sys.stdin)['parameters']['height'];"\
         )
         
         FULL_HEIGHT=$(\
         curl --silent --max-time 10 --output -X GET "http://localhost:9053/info" -H "accept: application/json"   \
-        | python -c "import sys, json; print json.load(sys.stdin)['fullHeight'];"\
+        | python3 -c "import sys, json; print json.load(sys.stdin)['fullHeight'];"\
         )
     fi
 
@@ -402,8 +399,8 @@ fi
 set_configuration   
 
 # Launch in browser
-python${ver:0:1} -mwebbrowser http://127.0.0.1:9053/panel 
-python${ver:0:1} -mwebbrowser http://127.0.0.1:9053/info 
+python3${ver:0:1} -mwebbrowser http://127.0.0.1:9053/panel 
+#python3${ver:0:1} -mwebbrowser http://127.0.0.1:9053/info 
 
 # Print to console
 print_console   
