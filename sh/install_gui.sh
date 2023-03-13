@@ -274,7 +274,7 @@ check_status(){
     if [ -z "$string" ]; then
         echo -e "${LRED}${1} is down${NC}"
         #func_kill
-        
+        killall -9 java
         #start_node
         print_console
     else
