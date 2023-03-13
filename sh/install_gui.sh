@@ -15,8 +15,6 @@
 # 3. Check for node mistakenly thinking it's sync'ed (headerChainDiff?)
 # 4. Light-mode Yes/No
 
-[ -d ergo ] || mkdir ergo && cd ergo
-
 export BLAKE_HASH="324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf"
 
 # Set some environment variables
