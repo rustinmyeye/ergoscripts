@@ -340,5 +340,8 @@ set_environment
 print_console
 
 # Launch in browser
+sleep 60
+
+adb shell am start -a android.intent.action.VIEW -d http://127.0.0.1:9053/panel
 #python3${ver:0:1} -mwebbrowser http://127.0.0.1:9053/panel 
 #python3${ver:0:1} -mwebbrowser http://127.0.0.1:9053/info 
