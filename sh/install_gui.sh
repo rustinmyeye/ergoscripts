@@ -257,7 +257,7 @@ error_log(){
         i=0
         echo i: $i
         #func_kill
-        curl -X POST --max-time 10 "http://127.0.0.1:9053/node/shutdown" -H "api_key: $API_KEY"
+        killall -9 java
         sh start.sh
         
     fi
