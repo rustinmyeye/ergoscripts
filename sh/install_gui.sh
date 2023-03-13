@@ -1,4 +1,4 @@
-#!/bin/bash
+ hu#!/bin/bash
 # Git test
 # Shell script for installing Ergo Node on any platform.
 # markglasgow@gmail.com 
@@ -258,7 +258,7 @@ error_log(){
         echo i: $i
         #func_kill
         curl -X POST --max-time 10 "http://127.0.0.1:9053/node/shutdown" -H "api_key: $API_KEY"
-        #start_node
+        sh start.sh
         
     fi
 
@@ -312,9 +312,9 @@ print_console() {
         clear
         
         printf "%s    \n\n" \
-        "To use the API, enter your password ('$API_KEY') on 127.0.0.1:9053/panel under 'Set API key'."\
-        "Please follow the next steps on docs.ergoplatform.org to initialise your wallet."  \
-        "For best results please disable any sleep mode while syncing"  \
+        "View the Ergo node panel at 127.0.0.1:9053/panel"\
+        "You can add this node to Ergo Wallet app's node and apo connections when it is 100% synced"  \
+        "For best results please enable wakelock mode while syncing"  \
         "Sync Progress;"\
         "### Headers: ~$(( 100 - $PERCENT_HEADERS ))% Complete ($HEADERS_HEIGHT/$API_HEIGHT) ### "\
         "### Blocks:  ~$(( 100 - $PERCENT_BLOCKS ))% Complete ($HEIGHT/$API_HEIGHT) ### "
