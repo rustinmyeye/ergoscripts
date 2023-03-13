@@ -1,9 +1,10 @@
 #!/bin/sh
-# Git test
 # Shell script for installing Ergo Node on any platform.
 # markglasgow@gmail.com 
 # -------------------------------------------------------------------------
-# Totally butchered by rustinmyeye
+# Totally butchered by rustinmyeye. 
+# It's now a shell script for installing on Ergo Node app for Android
+# -------------------------------------------------------------------------
 
 ## Minimal Config - no api key hash
 echo "
