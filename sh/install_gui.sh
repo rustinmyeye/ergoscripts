@@ -1,4 +1,4 @@
- hu#!/bin/bash
+#!/bin/bash
 # Git test
 # Shell script for installing Ergo Node on any platform.
 # markglasgow@gmail.com 
