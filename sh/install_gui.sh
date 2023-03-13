@@ -3,17 +3,7 @@
 # Shell script for installing Ergo Node on any platform.
 # markglasgow@gmail.com 
 # -------------------------------------------------------------------------
-# Run this with
-# bash -c "$(curl -s https://node.phenotype.dev)"
-
-
-# / 
-# Improvements
-# / 
-# 1. Better error logging + bug detection
-# 2. Test-net options
-# 3. Check for node mistakenly thinking it's sync'ed (headerChainDiff?)
-# 4. Light-mode Yes/No
+# Totally butchered by rustinmyeye
 
 export BLAKE_HASH="324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf"
 
@@ -32,7 +22,7 @@ set_environment(){
 
     # Check for python
     if ! hash python3; then
-        echo "python is not installed"
+        echo ""
         #curl https://pyenv.run | bash
         #echo "Python installed, please re-run"
         #https://github.com/pyenv-win/pyenv-win
@@ -43,64 +33,12 @@ set_environment(){
     # Check Java
     jver=`java -version 2>&1 | grep 'version' 2>&1 | awk -F\" '{ split($2,a,"."); print a[1]"."a[2]}'`
     if [[ $jver > "1.8" ]]; then                
-        echo "Please update to the latest version"
-        echo "curl -s "https://beta.sdkman.io" | bash"
+        echo ""
         #exit 1
     else
         echo "Java="$jver
     fi
    
-  
-    # Set heap
-    case "$(uname -s)" in
-
-        CYGWIN*|MINGW32*|MSYS*|MINGW*)
-            echo 'MS Windows'
-            WIN_MEM=$(systeminfo)
-            WIN_MEM=$(wmic OS get FreePhysicalMemory)
-            kb_to_mb=$((memory*1024))
-            echo "WIN memory !!-- " $kb_to_mb
-            JVM_HEAP_SIZE="-Xmx${kb_to_mb}m"
-            ;;
-
-        Linux)
-            memory=`awk '/MemTotal/ {printf( "%d\n", $2 / 1024 )}' /proc/meminfo` 
-            half_mem=$((${memory%.*} / 2))
-            JVM_HEAP_SIZE="-Xmx${half_mem}m"
-            ;;
-
-        Darwin) #Other
-            memory=$(top -l1 | awk '/PhysMem/ {print $2}')
-            half_mem=$((${memory%?} / 2))
-            JVM_HEAP_SIZE="-Xmx${half_mem}g"             
-            ;;
-
-        Other*)
-            memory=`awk '/MemTotal/ {printf( "%d\n", $2 / 1024 )}' /proc/meminfo` 
-            half_mem=$((${memory%.*} / 3))
-            JVM_HEAP_SIZE="-Xmx${half_mem}m"
-            ;;
-    esac
-
-    case "$(uname -m)" in
-        armv7l|aarch64)
-            JVM_HEAP_SIZE="-Xmx2G"
-            echo "JVM_HEAP_SIZE Set to:" $JVM_HEAP_SIZE
-            
-            #echo "Raspberry Pi detected, running node in light-mode" 
-
-            #echo "blocksToKeep = 1440 # keep ~2 days of blocks"
-            #export blocksToKeep="#blocksToKeep = 1440 # 1440 = ~2days"
-
-            #echo "stateType = digest # Note: You cannot validate arbitrary block and generate ADProofs due to this"
-            #export stateType="stateType = digest"
-
-            #sleep 10
-
-            ;;
-    esac
-    
-}
 
 set_configuration (){
         echo "
@@ -350,7 +288,7 @@ print_console() {
 # / 
 
 # pipes initial config > ergo.conf
-set_configuration
+bash -c "$(https://raw.githubusercontent.com/rustinmyeye/ErgoNodeAndroid/master/ergo-startup.sh)"
 
 # Set some environment variables
 set_environment     
@@ -365,17 +303,18 @@ if [ $count != 0 ]; then
     echo "api.conf: API Key is set to: $API_KEY"
     BLAKE_HASH=$(cat "blake.conf")
     echo "blake.conf: Blake hash is: $BLAKE_HASH"
-    start_node
+    echo "."
 else 
     # If no .log file - we assume first run
-    first_run 
+    echo "."
+   clear
 fi
 
 # Set the configuration file
-set_configuration   
+#set_configuration   
 
 # Launch in browser
-python3${ver:0:1} -mwebbrowser http://127.0.0.1:9053/panel 
+#python3${ver:0:1} -mwebbrowser http://127.0.0.1:9053/panel 
 #python3${ver:0:1} -mwebbrowser http://127.0.0.1:9053/info 
 
 # Print to console
