@@ -273,28 +273,8 @@ print_console() {
         echo "$dt: HEADERS: $HEADERS_HEIGHT, HEIGHT:$HEIGHT" >> height.log
 
         get_heights  
-
-     
-
-        
-        
-
     done
 }
-
-
-# /
-# main()
-# / 
-
-# pipes initial config > ergo.conf
-bash -c "$(https://raw.githubusercontent.com/rustinmyeye/ErgoNodeAndroid/master/ergo-startup.sh)"
-
-# Set some environment variables
-set_environment     
-
-# Cross-platform killer
-func_kill   
 
 # Check for the prescence of log files
 count=`ls -1 blake.conf 2>/dev/null | wc -l`
@@ -310,9 +290,41 @@ else
    clear
 fi
 
-# Set the configuration file
-#set_configuration   
+# Set some environment variables
+set_environment     
 
+## Minimal Config
+echo "
+    ergo {
+        node {
+            mining = false
+        }
+
+    }" > ergo.conf
+        
+## Node start command
+echo "
+#!/bin/sh  
+while true
+do
+java -jar -Xmx1G ergo.jar --mainnet -c ergo.conf > server.log 2>&1 &
+    sleep 100
+done" > start.sh
+    
+chmod +x start.sh
+
+## Download .jar
+echo "- Retrieving latest node release.."
+LATEST_ERGO_RELEASE=$(curl -s "https://api.github.com/repos/ergoplatform/ergo/releases/latest" | awk -F '"' '/tag_name/{print $4}')
+LATEST_ERGO_RELEASE_NUMBERS=$(echo ${LATEST_ERGO_RELEASE} | cut -c 2-)
+ERGO_DOWNLOAD_URL=https://github.com/ergoplatform/ergo/releases/download/${LATEST_ERGO_RELEASE}/ergo-${LATEST_ERGO_RELEASE_NUMBERS}.jar
+echo "- Downloading Latest known Ergo release: ${LATEST_ERGO_RELEASE}."
+curl --silent -L ${ERGO_DOWNLOAD_URL} --output ergo.jar
+
+##Start node
+echo "Starting the node..."
+
+tmux new-session -d -s my_session 'sh start.sh && sleep 5'
 # Launch in browser
 #python3${ver:0:1} -mwebbrowser http://127.0.0.1:9053/panel 
 #python3${ver:0:1} -mwebbrowser http://127.0.0.1:9053/info 
