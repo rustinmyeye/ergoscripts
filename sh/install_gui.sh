@@ -241,13 +241,13 @@ error_log(){
     inputFile=ergo.log
     
     if egrep 'ERROR\|WARN' "$inputFile" ; then
-        echo "WARN/ERROR:" $egrep
+        #echo "WARN/ERROR:" $egrep
         echo "$egrep" >> error.log
     elif egrep 'Got GetReaders request in state (None,None,None,None)\|port' "$inputFile" ; then
         echo "Readers not ready. If this keeps happening we'll attempt to restart: $i"
         ((i=i+1)) 
     elif egrep 'Invalid z bytes' "$inputFile" ; then
-        echo "zBYTES error:" $egrep
+        #echo "zBYTES error:" $egrep
         echo "$egrep" >> error.log
     
     fi
