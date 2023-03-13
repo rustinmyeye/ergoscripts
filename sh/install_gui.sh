@@ -126,7 +126,7 @@ set_environment(){
             #;;
     #esac
     
-#}
+}
 
 #set_configuration (){
         #echo "
