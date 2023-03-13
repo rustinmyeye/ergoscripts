@@ -303,6 +303,37 @@ get_heights(){
         | python3 -c "import sys, json; print(json.load(sys.stdin)['fullHeight']);"\
         )               
         
+        
+        API_HEIGHT=${API_HEIGHT2:92:6}
+    # Calculate %
+    if [ -n "$API_HEIGHT" ] && [ "$API_HEIGHT" -eq "$API_HEIGHT" ] 2>/dev/null; then
+        
+        
+        if [ -n "$HEADERS_HEIGHT" ] && [ "$HEADERS_HEIGHT" -eq "$HEADERS_HEIGHT" ] 2>/dev/null; then
+            let expr PERCENT_HEADERS=$(( ( ($API_HEIGHT - $HEADERS_HEIGHT) * 100) / $API_HEIGHT   )) 
+        fi
+
+        if [ -n "$HEIGHT" ] && [ "$HEIGHT" -eq "$HEIGHT" ] 2>/dev/null; then
+            let expr PERCENT_BLOCKS=$(( ( ($API_HEIGHT - $HEIGHT) * 100) / $API_HEIGHT   ))
+        fi        
+        
+        # if height==headersHeight then we are syncronised. 
+        if [ -n "$HEADERS_HEIGHT" ] && [ "$HEADERS_HEIGHT" -eq "$HEIGHT" ] 2>/dev/null; then
+            echo "HeadersHeight == Height"
+            echo "Node is syncronised"
+            exit 1
+
+        fi
+
+        # If HeadersHeight < Height then something has gone wrong
+        if [ -n "$HEADERS_HEIGHT" ] && [ "$HEADERS_HEIGHT" -lt "$HEIGHT" ] 2>/dev/null; then
+            echo "HeadersHeight < Height"
+            echo "Mis-sync!"
+            exit 1
+
+        fi
+   
+        
 } 
     
 print_console() {
