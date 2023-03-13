@@ -206,8 +206,6 @@ func_kill(){
         sleep 10
         ;;
     *) #Other
-        kill -9 $(lsof -t -i:9053)
-        kill -9 $(lsof -t -i:9030)
         killall -9 java
         sleep 10
         ;;
@@ -263,7 +261,6 @@ get_heights(){
 
     check_status "localhost:9053/info"
 
-    if [[ ${pyv:0:1} == "3" ]]; then 
         API_HEIGHT2==$(\
                 curl --silent --max-time 10 --output -X GET "https://api.ergoplatform.com/api/v1/networkState" -H "accept: application/json" )
 
@@ -282,27 +279,6 @@ get_heights(){
         | python3 -c "import sys, json; print(json.load(sys.stdin)['fullHeight']);"\
         )               
         
-    fi
-
-    if [[ ${pyv:0:1} == "2" ]]; then                
-       API_HEIGHT2==$(\
-                curl --silent --max-time 10 --output -X GET "https://api.ergoplatform.com/api/v1/networkState" -H "accept: application/json" )
-
-        HEADERS_HEIGHT=$(\
-            curl --silent --max-time 10 --output -X GET "http://localhost:9053/info" -H "accept: application/json" \
-            | python3 -c "import sys, json; print json.load(sys.stdin)['headersHeight'];"\
-        )
-
-        HEIGHT=$(\
-        curl --silent --max-time 10 --output -X GET "http://localhost:9053/info" -H "accept: application/json"   \
-        | python3 -c "import sys, json; print json.load(sys.stdin)['parameters']['height'];"\
-        )
-        
-        FULL_HEIGHT=$(\
-        curl --silent --max-time 10 --output -X GET "http://localhost:9053/info" -H "accept: application/json"   \
-        | python3 -c "import sys, json; print json.load(sys.stdin)['fullHeight'];"\
-        )
-    fi
 
     
     API_HEIGHT=${API_HEIGHT2:92:6}
