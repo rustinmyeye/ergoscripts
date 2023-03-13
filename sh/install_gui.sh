@@ -37,7 +37,7 @@ curl --silent -L ${ERGO_DOWNLOAD_URL} --output ergo.jar
 echo "Starting the node..."
 
 tmux new-session -d -s my_session 'sh start.sh && sleep 5'
-curl --output /dev/null --silent --head --fail http://localhost:9053; do sleep 1 && error_log; done;  # wait for node be ready with progress bar
+start_node
 sleep 30
 export BLAKE_HASH="324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf"
 
@@ -159,12 +159,12 @@ set_environment(){
 
 #}
 
-#start_node(){
+start_node(){
     #java -jar $JVM_HEAP_SIZE ergo.jar --mainnet -c ergo.conf > server.log 2>&1 & 
-    #echo "#### Waiting for a response from the server. ####"
-    #while ! curl --output /dev/null --silent --head --fail http://localhost:9053; do sleep 1 && error_log; done;  # wait for node be ready with progress bar
+    echo "#### Waiting for a response from the server. ####"
+    while ! curl --output /dev/null --silent --head --fail http://localhost:9053; do sleep 1 && error_log; done;  # wait for node be ready with progress bar
     
-#}
+}
 
 # Set basic config for boot, boot & get the hash and then re-set config 
 #first_run() {
