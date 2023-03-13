@@ -22,23 +22,78 @@ set_environment(){
 
     # Check for python
     if ! hash python3; then
-        echo ""
+        echo "python is not installed"
         #curl https://pyenv.run | bash
         #echo "Python installed, please re-run"
         #https://github.com/pyenv-win/pyenv-win
         exit 1
     fi
    
+    # check python version
+    pyv=$(python -V 2>&1 | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
+    #echo $pyv
 
     # Check Java
     jver=`java -version 2>&1 | grep 'version' 2>&1 | awk -F\" '{ split($2,a,"."); print a[1]"."a[2]}'`
     if [[ $jver > "1.8" ]]; then                
-        echo ""
+        echo "."
+        echo "."
         #exit 1
     else
         echo "Java="$jver
     fi
    
+  
+    # Set heap
+    case "$(uname -s)" in
+
+        CYGWIN*|MINGW32*|MSYS*|MINGW*)
+            echo 'MS Windows'
+            WIN_MEM=$(systeminfo)
+            WIN_MEM=$(wmic OS get FreePhysicalMemory)
+            kb_to_mb=$((memory*1024))
+            echo "WIN memory !!-- " $kb_to_mb
+            JVM_HEAP_SIZE="-Xmx${kb_to_mb}m"
+            ;;
+
+        Linux)
+            memory=`awk '/MemTotal/ {printf( "%d\n", $2 / 1024 )}' /proc/meminfo` 
+            half_mem=$((${memory%.*} / 2))
+            JVM_HEAP_SIZE="-Xmx${half_mem}m"
+            ;;
+
+        Darwin) #Other
+            memory=$(top -l1 | awk '/PhysMem/ {print $2}')
+            half_mem=$((${memory%?} / 2))
+            JVM_HEAP_SIZE="-Xmx${half_mem}g"             
+            ;;
+
+        Other*)
+            memory=`awk '/MemTotal/ {printf( "%d\n", $2 / 1024 )}' /proc/meminfo` 
+            half_mem=$((${memory%.*} / 3))
+            JVM_HEAP_SIZE="-Xmx${half_mem}m"
+            ;;
+    esac
+
+    case "$(uname -m)" in
+        armv7l|aarch64)
+            JVM_HEAP_SIZE="-Xmx2G"
+            echo "JVM_HEAP_SIZE Set to:" $JVM_HEAP_SIZE
+            
+            #echo "Raspberry Pi detected, running node in light-mode" 
+
+            #echo "blocksToKeep = 1440 # keep ~2 days of blocks"
+            #export blocksToKeep="#blocksToKeep = 1440 # 1440 = ~2days"
+
+            #echo "stateType = digest # Note: You cannot validate arbitrary block and generate ADProofs due to this"
+            #export stateType="stateType = digest"
+
+            #sleep 10
+
+            ;;
+    esac
+    
+}
 
 set_configuration (){
         echo "
@@ -53,7 +108,6 @@ set_configuration (){
                         # The node still applying transactions to UTXO set and so checks UTXO set digests for each block.
                         skipV1TransactionsValidation = true
                     }
-
                 }      
                         
                 scorex {
@@ -97,11 +151,8 @@ first_run() {
         # API 
         read -p "
     #### Please create a password. #### 
-
     This will be used to unlock your API. 
-
     Generally using the same API key through the entire sync process can prevent 'Bad API Key' errors:
-
     " input
 
         export API_KEY=$input
@@ -144,6 +195,8 @@ func_kill(){
         sleep 10
         ;;
     *) #Other
+        kill -9 $(lsof -t -i:9053)
+        kill -9 $(lsof -t -i:9030)
         killall -9 java
         sleep 10
         ;;
@@ -198,7 +251,7 @@ check_status(){
 get_heights(){
 
     check_status "localhost:9053/info"
-
+ 
         API_HEIGHT2==$(\
                 curl --silent --max-time 10 --output -X GET "https://api.ergoplatform.com/api/v1/networkState" -H "accept: application/json" )
 
@@ -217,41 +270,6 @@ get_heights(){
         | python3 -c "import sys, json; print(json.load(sys.stdin)['fullHeight']);"\
         )               
         
-
-    
-    API_HEIGHT=${API_HEIGHT2:92:6}
-    # Calculate %
-    if [ -n "$API_HEIGHT" ] && [ "$API_HEIGHT" -eq "$API_HEIGHT" ] 2>/dev/null; then
-        
-        
-        if [ -n "$HEADERS_HEIGHT" ] && [ "$HEADERS_HEIGHT" -eq "$HEADERS_HEIGHT" ] 2>/dev/null; then
-            let expr PERCENT_HEADERS=$(( ( ($API_HEIGHT - $HEADERS_HEIGHT) * 100) / $API_HEIGHT   )) 
-        fi
-
-        if [ -n "$HEIGHT" ] && [ "$HEIGHT" -eq "$HEIGHT" ] 2>/dev/null; then
-            let expr PERCENT_BLOCKS=$(( ( ($API_HEIGHT - $HEIGHT) * 100) / $API_HEIGHT   ))
-        fi        
-        
-        # if height==headersHeight then we are syncronised. 
-        if [ -n "$HEADERS_HEIGHT" ] && [ "$HEADERS_HEIGHT" -eq "$HEIGHT" ] 2>/dev/null; then
-            echo "HeadersHeight == Height"
-            echo "Node is syncronised"
-            exit 1
-
-        fi
-
-        # If HeadersHeight < Height then something has gone wrong
-        if [ -n "$HEADERS_HEIGHT" ] && [ "$HEADERS_HEIGHT" -lt "$HEIGHT" ] 2>/dev/null; then
-            echo "HeadersHeight < Height"
-            echo "Mis-sync!"
-            exit 1
-
-        fi
-   
-        
-
-    fi
-    
 } 
     
 print_console() {
@@ -273,22 +291,19 @@ print_console() {
         echo "$dt: HEADERS: $HEADERS_HEIGHT, HEIGHT:$HEIGHT" >> height.log
 
         get_heights  
+
+     
+
+        
+        
+
     done
 }
 
-# Check for the prescence of log files
-count=`ls -1 blake.conf 2>/dev/null | wc -l`
-if [ $count != 0 ]; then   
-    API_KEY=$(cat "api.conf")
-    echo "api.conf: API Key is set to: $API_KEY"
-    BLAKE_HASH=$(cat "blake.conf")
-    echo "blake.conf: Blake hash is: $BLAKE_HASH"
-    echo "."
-else 
-    # If no .log file - we assume first run
-    echo "."
-   clear
-fi
+
+# /
+# main()
+# / 
 
 # Set some environment variables
 set_environment     
